@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ziemart_frontend/config/app_asset.dart';
+import 'package:gap/gap.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -12,8 +14,8 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
 
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/registerPage');
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacementNamed(context, '/loginPage');
     });
   }
 
@@ -21,25 +23,28 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: const Color.fromARGB(255, 250, 255, 202),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                "images/logo-ziemart.png",
-                width: 120,
-                height: 120,
+                AppAssets.logo,
+                width: 90,
+                height: 90,
               ),
-
-              SizedBox(height: 20),
-
-              Text(
-                "ZieMart",
-                style: TextStyle(fontSize: 24, color: Colors.black),
+              const Gap(24),
+              const CircularProgressIndicator(
+                color: Color(0xFF1565C0),
               ),
             ],
-          )
+          ),
         ),
       ),
     );

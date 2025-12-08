@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Comment;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
@@ -17,36 +16,29 @@ class Product extends Model
         'stock',
         'img',
         'category_id',
+        'seller_id',
     ];
 
-    // Relasi ke category
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock' => 'integer',
+    ];
+
+    // Relasi ke Category
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class);
     }
 
-    public function comments(){
+    // Relasi ke Seller
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
+    }
+
+    // Relasi ke Comments
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
-    }
-
-    // Relasi ke sellers
-    public function sellers()
-    {
-        return $this->belongsToMany(Seller::class, 'seller_products', 'product_id', 'seller_id')
-            ->withTimestamps();
-    }
-
-    // Relasi ke orders (many-to-many via order_details)
-    public function orders()
-    {
-        return $this->belongsToMany(Order::class, 'order_details')
-            ->withPivot('quantity', 'total_price')
-            ->withTimestamps();
-    }
-
-    // Relasi ke reviews
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'product_id');
     }
 }

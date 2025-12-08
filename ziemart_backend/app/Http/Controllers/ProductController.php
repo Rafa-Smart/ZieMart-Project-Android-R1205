@@ -7,28 +7,30 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function getProduct()
-    {
-        $product = Product::with(['category', 'comments'])->get();
+public function getProduct()
+{
+    $product = Product::with(['category', 'comments', 'seller'])->get();
 
+    return response()->json([
+        'data' => $product,
+    ], 200);
+}
+
+public function getProductById($id)
+{
+    $product = Product::with(['category', 'comments', 'seller'])->find($id);
+
+    if (! $product) {
         return response()->json([
-            'data' => $product,
-        ], 200);
+            'message' => 'Product not found',
+        ], 404);
     }
 
-    public function getProductById($id)
-    {
-        $product = Product::with(['category', 'comments'])->find($id);
-        if (! $product) {
-            return response()->json([
-                'message' => 'Product not found',
-            ], 404);
-        }
+    return response()->json([
+        'data' => $product,
+    ], 200);
+}
 
-        return response()->json([
-            'data' => $product,
-        ], 200);
-    }
 
     public function searchProduct(Request $request)
     {

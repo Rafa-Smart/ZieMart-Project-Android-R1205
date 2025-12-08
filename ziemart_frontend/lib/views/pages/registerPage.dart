@@ -29,10 +29,7 @@ class RegisterPage extends StatelessWidget {
               ),
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 40,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                   child: Card(
                     elevation: 12,
                     shadowColor: Colors.blueAccent.withOpacity(0.3),
@@ -59,36 +56,74 @@ class RegisterPage extends StatelessWidget {
                             ),
                             const Gap(28),
 
+                            // Nama Lengkap / Toko
+                            buildTextField(
+                              controller: vm.extraController,
+                              label: vm.role == "buyer" ? "Nama Lengkap" : "Nama Toko",
+                              icon: vm.role == "buyer"
+                                  ? Icons.person_outline
+                                  : Icons.storefront_outlined,
+                              validator: (v) => v == null || v.isEmpty
+                                  ? (vm.role == "buyer"
+                                      ? "Nama lengkap wajib diisi"
+                                      : "Nama toko wajib diisi")
+                                  : null,
+                            ),
+                            const Gap(14),
+
                             // Username
                             buildTextField(
                               controller: vm.usernameController,
                               label: "Username",
                               icon: Icons.person,
-                              validator: (v) => v == null || v.isEmpty
-                                  ? "Username wajib diisi"
-                                  : null,
+                              validator: (v) =>
+                                  v == null || v.isEmpty ? "Username wajib diisi" : null,
                             ),
                             const Gap(14),
 
-                            // Email & Phone
+                            // Email
+                            buildTextField(
+                              controller: vm.emailController,
+                              label: "Email",
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Email wajib diisi";
+                                }
+                                final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                                if (!emailRegex.hasMatch(value)) {
+                                  return "Format email tidak valid";
+                                }
+                                return null;
+                              },
+                            ),
+                            const Gap(14),
+
+                            // Nomor HP
+                            buildTextField(
+                              controller: vm.phoneController,
+                              label: "Nomor HP",
+                              icon: Icons.phone_android,
+                              keyboardType: TextInputType.phone,
+                              validator: (v) =>
+                                  v == null || v.isEmpty ? "Nomor wajib diisi" : null,
+                            ),
+                            const Gap(14),
+
+                            // Password & Konfirmasi Password
                             Row(
                               children: [
                                 Expanded(
                                   child: buildTextField(
-                                    controller: vm.emailController,
-                                    label: "Email",
-                                    icon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Email wajib diisi";
-                                      }
-                                      final emailRegex = RegExp(
-                                        r'^[^@]+@[^@]+\.[^@]+',
-                                      );
-                                      if (!emailRegex.hasMatch(value)) {
-                                        return "Format email tidak valid";
-                                      }
+                                    controller: vm.passwordController,
+                                    label: "Password",
+                                    icon: Icons.lock_outline,
+                                    obscureText: true,
+                                    validator: (v) {
+                                      if (v == null || v.isEmpty)
+                                        return "Password wajib diisi";
+                                      if (v.length < 6) return "Minimal 6 karakter";
                                       return null;
                                     },
                                   ),
@@ -96,49 +131,22 @@ class RegisterPage extends StatelessWidget {
                                 const Gap(10),
                                 Expanded(
                                   child: buildTextField(
-                                    controller: vm.phoneController,
-                                    label: "Nomor HP",
-                                    icon: Icons.phone_android,
-                                    keyboardType: TextInputType.phone,
-                                    validator: (v) => v == null || v.isEmpty
-                                        ? "Nomor wajib diisi"
-                                        : null,
+                                    controller: vm.confirmPasswordController,
+                                    label: "Konfirmasi Password",
+                                    icon: Icons.lock_person_outlined,
+                                    obscureText: true,
+                                    validator: (v) {
+                                      if (v == null || v.isEmpty) {
+                                        return "Konfirmasi password wajib diisi";
+                                      }
+                                      if (v != vm.passwordController.text) {
+                                        return "Password tidak sama";
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 ),
                               ],
-                            ),
-                            const Gap(14),
-
-                            // Password
-                            buildTextField(
-                              controller: vm.passwordController,
-                              label: "Password",
-                              icon: Icons.lock_outline,
-                              obscureText: true,
-                              validator: (v) {
-                                if (v == null || v.isEmpty)
-                                  return "Password wajib diisi";
-                                if (v.length < 6) return "Minimal 6 karakter";
-                                return null;
-                              },
-                            ),
-                            const Gap(14),
-
-                            // Konfirmasi Password
-                            buildTextField(
-                              controller: vm.confirmPasswordController,
-                              label: "Konfirmasi Password",
-                              icon: Icons.lock_person_outlined,
-                              obscureText: true,
-                              validator: (v) {
-                                if (v == null || v.isEmpty) {
-                                  return "Konfirmasi password wajib diisi";
-                                }
-                                if (v != vm.passwordController.text) {
-                                  return "Password tidak sama";
-                                }
-                                return null;
-                              },
                             ),
                             const Gap(18),
 
@@ -150,23 +158,6 @@ class RegisterPage extends StatelessWidget {
                                 const Gap(14),
                                 buildRadio(vm, "seller", "Penjual"),
                               ],
-                            ),
-                            const Gap(14),
-
-                            // Nama Lengkap / Toko
-                            buildTextField(
-                              controller: vm.extraController,
-                              label: vm.role == "buyer"
-                                  ? "Nama Lengkap"
-                                  : "Nama Toko",
-                              icon: vm.role == "buyer"
-                                  ? Icons.person_outline
-                                  : Icons.storefront_outlined,
-                              validator: (v) => v == null || v.isEmpty
-                                  ? (vm.role == "buyer"
-                                        ? "Nama lengkap wajib diisi"
-                                        : "Nama toko wajib diisi")
-                                  : null,
                             ),
                             const Gap(28),
 
@@ -180,49 +171,41 @@ class RegisterPage extends StatelessWidget {
                                     : () async {
                                         if (formKey.currentState!.validate()) {
                                           final success = await vm.register();
-                                          if (success) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
+                                          
+                                          if (success && context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
                                               const SnackBar(
-                                                content: Text(
-                                                  "Registrasi berhasil!",
-                                                ),
+                                                content: Text("Registrasi berhasil!"),
                                                 backgroundColor: Colors.green,
                                               ),
                                             );
+                                            
+                                            // Jika buyer langsung ke login
+                                            // Jika seller ke halaman verifikasi email
                                             if (vm.role == "buyer") {
                                               Navigator.pushReplacement(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const LoginPage(),
+                                                  builder: (context) => const LoginPage(),
                                                 ),
                                               );
                                             } else {
                                               Navigator.pushReplacement(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EmailVerifiedPage(
-                                                        email: vm
-                                                            .emailController
-                                                            .text
-                                                            .trim(),
-                                                      ),
+                                                  builder: (context) => EmailVerifiedPage(
+                                                    email: vm.emailController.text.trim(),
+                                                  ),
                                                 ),
                                               );
                                             }
-                                          } else {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
+                                          } else if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
                                                 content: Text(
-                                                  "Registrasi gagal.",
+                                                  vm.errorMessage ?? "Registrasi gagal.",
                                                 ),
-                                                backgroundColor:
-                                                    Colors.redAccent,
+                                                backgroundColor: Colors.redAccent,
                                               ),
                                             );
                                           }
@@ -306,10 +289,7 @@ class RegisterPage extends StatelessWidget {
         labelText: label,
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 14,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         labelStyle: const TextStyle(color: Colors.black87),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

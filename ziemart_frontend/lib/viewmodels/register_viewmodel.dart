@@ -8,6 +8,9 @@ class RegisterViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
   String? role = "buyer";
 
   final usernameController = TextEditingController();
@@ -18,7 +21,15 @@ class RegisterViewModel extends ChangeNotifier {
   final extraController = TextEditingController();
 
   Future<bool> register() async {
+    // Validasi password matching
+    if (passwordController.text != confirmPasswordController.text) {
+      _errorMessage = "Password tidak sama";
+      notifyListeners();
+      return false;
+    }
+
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     final user = User(
@@ -32,9 +43,15 @@ class RegisterViewModel extends ChangeNotifier {
 
     try {
       final success = await _repository.register(user, passwordController.text);
+      
+      if (!success) {
+        _errorMessage = "Registrasi gagal. Username atau email mungkin sudah digunakan.";
+      }
+      
       return success;
     } catch (e) {
       debugPrint("Error Register: $e");
+      _errorMessage = "Terjadi kesalahan: ${e.toString()}";
       return false;
     } finally {
       _isLoading = false;
@@ -45,6 +62,11 @@ class RegisterViewModel extends ChangeNotifier {
   void changeRole(String? newRole) {
     role = newRole;
     extraController.clear();
+    notifyListeners();
+  }
+
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 
