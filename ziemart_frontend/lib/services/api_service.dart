@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // final String _baseUrl = "http://127.0.0.1:8000/api/ziemart";
-  final String _baseUrl = "http://192.168.1.4:8000/api/ziemart";
+  final String _baseUrl = "http://192.168.1.6:8000/api/ziemart";
 
   // POST Request
   Future<Map<String, dynamic>> post(

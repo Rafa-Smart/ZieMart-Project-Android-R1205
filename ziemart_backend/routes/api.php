@@ -3,14 +3,16 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CartController;
+use App\Http\Controllers\HelpController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\OrderController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -32,6 +34,12 @@ Route::get('ziemart/profile/{id}', [ProfileController::class, 'getProfile']);
 Route::put('ziemart/profile/{id}', [ProfileController::class, 'updateProfile']);
 Route::put('ziemart/profile/{id}/change-password', [ProfileController::class, 'changePassword']);
 Route::delete('ziemart/profile/{id}', [ProfileController::class, 'deleteAccount']);
+
+// ========== CATEGORIES (NEW) ==========
+Route::get('ziemart/categories', [CategoryController::class, 'getCategories']);
+Route::get('ziemart/categories/{id}', [CategoryController::class, 'getCategoryById']);
+Route::get('ziemart/categories/{id}/products', [CategoryController::class, 'getProductsByCategory']);
+Route::get('ziemart/categories/popular/list', [CategoryController::class, 'getPopularCategories']);
 
 // ========== PRODUCTS ==========
 Route::get('ziemart/getProducts', [ProductController::class, 'getProduct']);
@@ -65,7 +73,7 @@ Route::post('ziemart/orders', [OrderController::class, 'createOrder']);
 Route::put('ziemart/orders/{orderId}', [OrderController::class, 'updateOrderStatus']);
 Route::delete('ziemart/orders/cancel/{orderId}', [OrderController::class, 'cancelOrder']);
 Route::get('ziemart/orders/statistics/{accountId}', [OrderController::class, 'getOrderStatistics']);
-
+Route::post('ziemart/send-help-email', [HelpController::class, 'sendHelpEmail']);
 // ========== TEST ==========
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);

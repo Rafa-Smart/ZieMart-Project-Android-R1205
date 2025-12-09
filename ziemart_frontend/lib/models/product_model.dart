@@ -19,21 +19,27 @@ class Seller {
       phoneNumber: json['phone_number']?.toString() ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'store_name': storeName,
+      'phone_number': phoneNumber,
+    };
+  }
 }
 
 // -------------------- Product Model --------------------
-
 class Product {
   final int id;
   final String productName;
   final String description;
-  final double price; // <-- DIGANTI JADI DOUBLE agar aman
+  final double price;
   final int stock;
   final String img;
   final int categoryId;
   final String createdAt;
   final String updatedAt;
-
   final Category category;
   final Seller? seller;
 
@@ -53,11 +59,26 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     // Parsing category
-    final category = Category.fromJson(json['category']);
+    Category category;
+    if (json['category'] != null) {
+      if (json['category'] is Map<String, dynamic>) {
+        category = Category.fromJson(json['category']);
+      } else {
+        category = Category(
+          id: int.tryParse(json['category_id'].toString()) ?? 0,
+          categoryName: '',
+        );
+      }
+    } else {
+      category = Category(
+        id: int.tryParse(json['category_id'].toString()) ?? 0,
+        categoryName: '',
+      );
+    }
 
-    // Parsing seller (boleh null)
+    // Parsing seller
     Seller? seller;
-    if (json['seller'] != null) {
+    if (json['seller'] != null && json['seller'] is Map<String, dynamic>) {
       seller = Seller.fromJson(json['seller']);
     }
 
@@ -65,13 +86,8 @@ class Product {
       id: int.tryParse(json['id'].toString()) ?? 0,
       productName: json['product_name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      
-      // FIX TERBESAR: Price bisa string/double/int → semuanya aman
       price: double.tryParse(json['price'].toString()) ?? 0.0,
-
-      // Stock juga bisa dikirim sebagai string
       stock: int.tryParse(json['stock'].toString()) ?? 0,
-
       img: json['img']?.toString() ?? '',
       categoryId: int.tryParse(json['category_id'].toString()) ?? 0,
       createdAt: json['created_at']?.toString() ?? '',
@@ -79,5 +95,21 @@ class Product {
       category: category,
       seller: seller,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'product_name': productName,
+      'description': description,
+      'price': price,
+      'stock': stock,
+      'img': img,
+      'category_id': categoryId,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'category': category.toJson(),
+      'seller': seller?.toJson(),
+    };
   }
 }

@@ -8,7 +8,10 @@ import '../../viewmodels/comment_viewmodel.dart';
 import '../../viewmodels/cart_viewmodel.dart';
 import '../../viewmodels/login_viewmodel.dart';
 import '../../viewmodels/wishlist_viewmodel.dart';
+import '../../viewmodels/order_viewmodel.dart';
 import '../../utils/formatter.dart';
+import 'package:flutter/services.dart'; // Untuk Clipboard
+import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends StatefulWidget {
   final int productId;
@@ -26,16 +29,27 @@ class _DetailPageState extends State<DetailPage> {
   bool isWishlisted = false;
   int? wishlistId;
   final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _showTitle = false;
 
   @override
   void initState() {
     super.initState();
     _loadProductDetail();
+    _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CommentViewModel>(context, listen: false)
           .fetchComments(widget.productId);
       _checkWishlistStatus();
     });
+  }
+
+  void _scrollListener() {
+    if (_scrollController.offset > 200 && !_showTitle) {
+      setState(() => _showTitle = true);
+    } else if (_scrollController.offset <= 200 && _showTitle) {
+      setState(() => _showTitle = false);
+    }
   }
 
   Future<void> _loadProductDetail() async {
@@ -80,7 +94,6 @@ class _DetailPageState extends State<DetailPage> {
     final wishlistVm = Provider.of<WishlistViewModel>(context, listen: false);
 
     if (isWishlisted && wishlistId != null) {
-      // Remove from wishlist
       final success = await wishlistVm.removeFromWishlist(wishlistId!);
       
       if (mounted) {
@@ -100,11 +113,9 @@ class _DetailPageState extends State<DetailPage> {
         );
       }
     } else {
-      // Add to wishlist
       final success = await wishlistVm.addToWishlist(user.id!, widget.productId);
 
       if (mounted) {
-        // Reload to get wishlist ID
         await _checkWishlistStatus();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -166,56 +177,218 @@ class _DetailPageState extends State<DetailPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success
-              ? '${product!.productName} ditambahkan ke keranjang'
-              : 'Gagal menambahkan ke keranjang'),
+          content: Row(
+            children: [
+              Icon(
+                success ? Icons.check_circle : Icons.error,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  success
+                      ? '${product!.productName} ditambahkan ke keranjang'
+                      : 'Gagal menambahkan ke keranjang',
+                ),
+              ),
+            ],
+          ),
           backgroundColor: success ? Colors.green : Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
   }
 
-  Future<void> _orderViaWhatsApp() async {
-    if (product?.seller?.phoneNumber == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nomor seller tidak tersedia')),
-        );
-      }
-      return;
+Future<void> _orderViaWhatsApp() async {
+  final loginVm = Provider.of<LoginViewModel>(context, listen: false);
+  final user = await loginVm.loadCurrentUser();
+
+  if (user == null) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan login terlebih dahulu'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+    return;
+  }
 
-    String phone = product!.seller!.phoneNumber!.replaceAll(RegExp(r'[^0-9]'), '');
-    if (!phone.startsWith('62')) {
-      if (phone.startsWith('0')) {
-        phone = '62${phone.substring(1)}';
-      } else {
-        phone = '62$phone';
-      }
+  if (product?.seller?.phoneNumber == null || product!.seller!.phoneNumber!.isEmpty) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nomor WhatsApp seller tidak tersedia'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+    return;
+  }
 
-    final message = 'Halo, saya tertarik dengan produk:\n\n'
-        '*${product!.productName}*\n'
-        'Harga: ${formatCurrency(product!.price.toDouble())}\n'
-        'Jumlah: $quantity\n\n'
-        'Apakah produk masih tersedia?';
+  // Validasi stok
+  if (quantity > product!.stock) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Stok tidak mencukupi. Stok tersedia: ${product!.stock}'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+    return;
+  }
 
-    final url = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+  // Simpan ke database dulu (optional)
+  final orderVm = Provider.of<OrderViewModel>(context, listen: false);
+  final totalPrice = (product!.price * quantity).toDouble();
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka WhatsApp')),
+  final success = await orderVm.createOrder(
+    accountId: user.id!,
+    productId: product!.id,
+    quantity: quantity,
+    totalPrice: totalPrice,
+  );
+
+  // Format nomor WhatsApp
+  String phone = product!.seller!.phoneNumber!.replaceAll(RegExp(r'[^0-9+]'), '');
+
+  // Handle berbagai format nomor
+  if (phone.startsWith('0')) {
+    phone = '+62${phone.substring(1)}';
+  } else if (phone.startsWith('62')) {
+    phone = '+$phone';
+  } else if (phone.startsWith('+')) {
+    // Sudah format internasional
+  } else {
+    phone = '+62$phone';
+  }
+
+  // Hapus spasi dan karakter khusus
+  phone = phone.replaceAll(' ', '').replaceAll('-', '');
+
+  // Buat pesan
+  final message = '''
+Halo, saya tertarik dengan produk:
+
+*${product!.productName}*
+Harga: ${formatCurrency(product!.price.toDouble())}
+Jumlah: $quantity
+Total: ${formatCurrency(totalPrice)}
+
+Apakah produk masih tersedia?
+
+*Data Pembeli:*
+Nama: ${user.username}
+Email: ${user.email}
+''';
+
+  // Encode URL dengan benar
+  final encodedMessage = Uri.encodeComponent(message);
+  
+  // Coba berbagai format URL
+  final urlPatterns = [
+    'whatsapp://send?phone=$phone&text=$encodedMessage',
+    'https://wa.me/$phone?text=$encodedMessage',
+    'https://api.whatsapp.com/send?phone=$phone&text=$encodedMessage',
+  ];
+
+  bool launched = false;
+  
+  for (final urlPattern in urlPatterns) {
+    try {
+      final url = Uri.parse(urlPattern);
+      
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+          webViewConfiguration: const WebViewConfiguration(
+            enableJavaScript: true,
+            enableDomStorage: true,
+          ),
         );
+        launched = true;
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Membuka WhatsApp...'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+        break;
       }
+    } catch (e) {
+      print('Gagal dengan URL $urlPattern: $e');
+      continue;
     }
   }
 
+  if (!launched && mounted) {
+    // Fallback: Buka dialog untuk copy nomor
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tidak Bisa Membuka WhatsApp'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Silakan hubungi seller secara manual:'),
+            const SizedBox(height: 10),
+            SelectableText(
+              'Nomor: $phone',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 5),
+            SelectableText(
+              'Pesan: $message',
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: phone));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Nomor disalin ke clipboard')),
+              );
+              Navigator.pop(context);
+            },
+            child: const Text('Salin Nomor'),
+          ),
+        ],
+      ),
+    );
+  }
+}
   @override
   void dispose() {
     _commentController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -228,8 +401,12 @@ class _DetailPageState extends State<DetailPage> {
     }
 
     if (product == null) {
-      return const Scaffold(
-        body: Center(child: Text("Produk tidak ditemukan")),
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF2F5DFE),
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(child: Text("Produk tidak ditemukan")),
       );
     }
 
@@ -238,6 +415,7 @@ class _DetailPageState extends State<DetailPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           _buildAppBar(),
           SliverToBoxAdapter(
@@ -247,7 +425,7 @@ class _DetailPageState extends State<DetailPage> {
                 _buildQuantitySelector(),
                 _buildDescription(),
                 _buildCommentSection(),
-                const SizedBox(height: 180),
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -259,7 +437,7 @@ class _DetailPageState extends State<DetailPage> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 400,
+      expandedHeight: 350,
       pinned: true,
       backgroundColor: const Color(0xFF2F5DFE),
       leading: Container(
@@ -300,8 +478,49 @@ class _DetailPageState extends State<DetailPage> {
             onPressed: _toggleWishlist,
           ),
         ),
+        Container(
+          margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.share, color: Color(0xFF2F5DFE)),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Fitur share segera hadir')),
+              );
+            },
+          ),
+        ),
       ],
       flexibleSpace: FlexibleSpaceBar(
+        centerTitle: true,
+        title: _showTitle
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  product!.productName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            : null,
         background: Hero(
           tag: 'product_${product!.id}',
           child: Stack(
@@ -312,7 +531,7 @@ class _DetailPageState extends State<DetailPage> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: Colors.grey[300],
-                  child: const Icon(Icons.image, size: 100),
+                  child: const Icon(Icons.image, size: 100, color: Colors.grey),
                 ),
               ),
               Container(
@@ -355,18 +574,22 @@ class _DetailPageState extends State<DetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2F5DFE).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  product!.category.categoryName,
-                  style: const TextStyle(
-                    color: Color(0xFF2F5DFE),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2F5DFE).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    product!.category.categoryName,
+                    style: const TextStyle(
+                      color: Color(0xFF2F5DFE),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -377,6 +600,7 @@ class _DetailPageState extends State<DetailPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(Icons.star, color: Colors.amber, size: 16),
                     SizedBox(width: 4),
@@ -413,24 +637,28 @@ class _DetailPageState extends State<DetailPage> {
                 child: const Icon(Icons.store, color: Color(0xFF2F5DFE), size: 20),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product!.seller?.storeName ?? 'Toko',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product!.seller?.storeName ?? 'Toko',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    'Penjual Terpercaya',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
+                    Text(
+                      'Penjual Terpercaya',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -438,23 +666,27 @@ class _DetailPageState extends State<DetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Harga',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    formatCurrency(product!.price.toDouble()),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2F5DFE),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Harga',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      formatCurrency(product!.price.toDouble()),
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2F5DFE),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -475,6 +707,7 @@ class _DetailPageState extends State<DetailPage> {
                   ],
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.inventory, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
@@ -789,12 +1022,16 @@ class _DetailPageState extends State<DetailPage> {
             children: [
               Row(
                 children: [
-                  Text(
-                    comment.account?.username ?? 'User ${comment.accountId}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Colors.black87,
+                  Flexible(
+                    child: Text(
+                      comment.account?.username ?? 'User ${comment.accountId}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),

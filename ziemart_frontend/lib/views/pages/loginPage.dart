@@ -17,182 +17,310 @@ class LoginPage extends StatelessWidget {
 
           return Scaffold(
             body: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF2F5DFE),
+                    const Color(0xFF2F5DFE).withOpacity(0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                  child: Card(
-                    elevation: 12,
-                    shadowColor: Colors.blueAccent.withOpacity(0.3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    color: Colors.white.withOpacity(0.95),
-                    child: Padding(
-                      padding: const EdgeInsets.all(26),
-                      child: Form(
-                        key: formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.asset(AppAssets.logo, width: 90, height: 90),
-                            const Gap(16),
-                            const Text(
-                              "Login Ziemart",
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1565C0),
+              child: SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                    child: Card(
+                      elevation: 20,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Form(
+                          key: formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Logo with shadow
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2F5DFE).withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Image.asset(
+                                  AppAssets.logo,
+                                  width: 80,
+                                  height: 80,
+                                ),
                               ),
-                            ),
-                            const Gap(28),
-
-                            // EMAIL FIELD
-                            buildTextField(
-                              controller: viewModel.emailController,
-                              label: "Email",
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Email wajib diisi";
-                                }
-                                return null;
-                              },
-                            ),
-                            const Gap(16),
-
-                            // PASSWORD FIELD
-                            buildTextField(
-                              controller: viewModel.passwordController,
-                              label: "Password",
-                              icon: Icons.lock_outline,
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Password wajib diisi";
-                                }
-                                return null;
-                              },
-                            ),
-                            const Gap(12),
-
-                            // LUPA PASSWORD
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: viewModel.isResetLoading
-                                    ? null
-                                    : () async {
-                                        final success = await viewModel.sendForgotPassword();
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                success
-                                                    ? "Email reset password telah dikirim!"
-                                                    : "Gagal mengirim email reset.",
-                                              ),
-                                              backgroundColor: success ? Colors.green : Colors.redAccent,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                child: viewModel.isResetLoading
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Text(
-                                        "Lupa Password?",
-                                        style: TextStyle(
-                                          color: Color(0xFF1565C0),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
+                              const Gap(20),
+                              
+                              // Title
+                              const Text(
+                                "Selamat Datang!",
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF2F5DFE),
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
-                            const Gap(25),
+                              const Gap(8),
+                              Text(
+                                "Login ke akun Ziemart Anda",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Gap(32),
 
-                            // BUTTON LOGIN
-                            SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed: viewModel.isLoading
-                                    ? null
-                                    : () async {
-                                        if (formKey.currentState!.validate()) {
-                                          final success = await viewModel.login();
-                                          
-                                          if (success && context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Login berhasil!'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                            
-                                            // Navigate to HomePage
-                                            Navigator.pushReplacementNamed(context, '/homePage');
-                                          } else if (context.mounted) {
+                              // EMAIL FIELD
+                              _buildTextField(
+                                controller: viewModel.emailController,
+                                label: "Email",
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Email wajib diisi";
+                                  }
+                                  final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                                  if (!emailRegex.hasMatch(value)) {
+                                    return "Format email tidak valid";
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const Gap(16),
+
+                              // PASSWORD FIELD
+                              _buildTextField(
+                                controller: viewModel.passwordController,
+                                label: "Password",
+                                icon: Icons.lock_outline,
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Password wajib diisi";
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const Gap(12),
+
+                              // LUPA PASSWORD
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: InkWell(
+                                  onTap: viewModel.isResetLoading
+                                      ? null
+                                      : () async {
+                                          final success = await viewModel.sendForgotPassword();
+                                          if (context.mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text(
-                                                  viewModel.errorMessage ?? 'Email atau password salah.'
+                                                content: Row(
+                                                  children: [
+                                                    Icon(
+                                                      success ? Icons.check_circle : Icons.error,
+                                                      color: Colors.white,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        success
+                                                            ? "Email reset password telah dikirim!"
+                                                            : "Gagal mengirim email reset.",
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                backgroundColor: Colors.redAccent,
+                                                backgroundColor: success ? Colors.green : Colors.red,
+                                                behavior: SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
                                               ),
                                             );
                                           }
-                                        }
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1565C0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                        },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: viewModel.isResetLoading
+                                        ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          )
+                                        : Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: const [
+                                              Icon(
+                                                Icons.help_outline,
+                                                size: 16,
+                                                color: Color(0xFF2F5DFE),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                "Lupa Password?",
+                                                style: TextStyle(
+                                                  color: Color(0xFF2F5DFE),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                   ),
-                                  elevation: 6,
                                 ),
-                                child: viewModel.isLoading
-                                    ? const CircularProgressIndicator(color: Colors.white)
-                                    : const Text(
-                                        "MASUK",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
                               ),
-                            ),
-                            const Gap(20),
+                              const Gap(28),
 
-                            // Register Redirect
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("Belum punya akun? "),
-                                InkWell(
-                                  onTap: () => Navigator.pushNamed(context, '/registerPage'),
-                                  child: const Text(
-                                    "Daftar di sini",
-                                    style: TextStyle(
-                                      color: Color(0xFF1565C0),
-                                      fontWeight: FontWeight.bold,
+                              // BUTTON LOGIN
+                              SizedBox(
+                                width: double.infinity,
+                                height: 54,
+                                child: ElevatedButton(
+                                  onPressed: viewModel.isLoading
+                                      ? null
+                                      : () async {
+                                          if (formKey.currentState!.validate()) {
+                                            final success = await viewModel.login();
+                                            
+                                            if (success && context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Row(
+                                                    children: const [
+                                                      Icon(Icons.check_circle, color: Colors.white),
+                                                      SizedBox(width: 8),
+                                                      Text('Login berhasil!'),
+                                                    ],
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                  behavior: SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                ),
+                                              );
+                                              
+                                              Navigator.pushReplacementNamed(context, '/homePage');
+                                            } else if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Row(
+                                                    children: [
+                                                      const Icon(Icons.error, color: Colors.white),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child: Text(
+                                                          viewModel.errorMessage ?? 'Email atau password salah.'
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                  behavior: SnackBarBehavior.floating,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2F5DFE),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 4,
+                                    shadowColor: const Color(0xFF2F5DFE).withOpacity(0.4),
+                                  ),
+                                  child: viewModel.isLoading
+                                      ? const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 3,
+                                          ),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: const [
+                                            Icon(Icons.login, color: Colors.white, size: 20),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "MASUK",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                              const Gap(24),
+
+                              // Divider
+                              Row(
+                                children: [
+                                  Expanded(child: Divider(color: Colors.grey[300])),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      "atau",
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  Expanded(child: Divider(color: Colors.grey[300])),
+                                ],
+                              ),
+                              const Gap(24),
+
+                              // Register Redirect
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Belum punya akun? ",
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () => Navigator.pushNamed(context, '/registerPage'),
+                                    child: const Text(
+                                      "Daftar di sini",
+                                      style: TextStyle(
+                                        color: Color(0xFF2F5DFE),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -206,7 +334,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget buildTextField({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -219,28 +347,32 @@ class LoginPage extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      style: const TextStyle(fontSize: 15),
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: const Color(0xFF2F5DFE), size: 22),
         labelText: label,
+        labelStyle: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 15,
+        ),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        labelStyle: const TextStyle(color: Colors.black87),
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade100),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blueAccent.shade200, width: 1.8),
+          borderSide: const BorderSide(color: Color(0xFF2F5DFE), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderSide: const BorderSide(color: Colors.red),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.8),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );

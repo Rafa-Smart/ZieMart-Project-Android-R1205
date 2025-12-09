@@ -11,12 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string("category_name");
-            $table->text("description");
-            $table->timestamps();
-        });
+        // Table categories sudah ada, tapi kita pastikan strukturnya benar
+        if (!Schema::hasTable('categories')) {
+            Schema::create('categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('category_name');
+                $table->text('description')->nullable();
+                $table->string('icon')->nullable(); // Untuk icon kategori
+                $table->string('color')->nullable(); // Untuk warna kategori
+                $table->timestamps();
+            });
+        } else {
+            // Jika table sudah ada, tambahkan kolom icon dan color
+            Schema::table('categories', function (Blueprint $table) {
+                if (!Schema::hasColumn('categories', 'icon')) {
+                    $table->string('icon')->nullable()->after('description');
+                }
+                if (!Schema::hasColumn('categories', 'color')) {
+                    $table->string('color')->nullable()->after('icon');
+                }
+            });
+        }
     }
 
     /**

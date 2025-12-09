@@ -6,6 +6,10 @@ class User {
   final String? phoneNumber;
   final String? fullName;
   final String? storeName;
+  final String? profilePicture;
+  final String? password;
+  final String? createdAt;
+  final String? updatedAt;
 
   User({
     this.id,
@@ -15,22 +19,28 @@ class User {
     this.phoneNumber,
     this.fullName,
     this.storeName,
+    this.profilePicture,
+    this.password,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  // Dari JSON (response API)
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      role: json['role'] ?? 'buyer',
-      phoneNumber: json['phone_number'],
-      fullName: json['full_name'] ?? json['fullName'],
-      storeName: json['store_name'] ?? json['storeName'],
+      id: int.tryParse(json['id']?.toString() ?? ''),
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'buyer',
+      phoneNumber: json['phone_number']?.toString(),
+      fullName: json['full_name']?.toString() ?? json['fullName']?.toString(),
+      storeName: json['store_name']?.toString() ?? json['storeName']?.toString(),
+      profilePicture: json['profile_picture']?.toString(),
+      password: json['password']?.toString(),
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
     );
   }
 
-  // Ke JSON (untuk simpan di local storage)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -40,6 +50,37 @@ class User {
       'phone_number': phoneNumber,
       'full_name': fullName,
       'store_name': storeName,
+      'profile_picture': profilePicture,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
     };
+  }
+
+  User copyWith({
+    int? id,
+    String? username,
+    String? email,
+    String? role,
+    String? phoneNumber,
+    String? fullName,
+    String? storeName,
+    String? profilePicture,
+    String? password,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      fullName: fullName ?? this.fullName,
+      storeName: storeName ?? this.storeName,
+      profilePicture: profilePicture ?? this.profilePicture,
+      password: password ?? this.password,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
