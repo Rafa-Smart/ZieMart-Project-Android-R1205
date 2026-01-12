@@ -1,4 +1,4 @@
-// lib/viewmodels/email_viewmodel.dart
+
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +20,7 @@ class EmailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      const String apiUrl = "http://192.168.1.6:8000/api/ziemart/send-help-email";
+      const String apiUrl = "http://192.168.0.136:8000/api/ziemart/send-help-email";
       // const String apiUrl = 'http://10.0.2.2:8000/api/send-help-email';
       
       print('Mengirim email ke: $apiUrl');

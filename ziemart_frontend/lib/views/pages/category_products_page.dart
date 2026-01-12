@@ -323,8 +323,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   }
 
   Widget _buildProductCard(Product product) {
-    // Pastikan Anda memiliki currencyFormatter yang didefinisikan di luar widget ini.
-    // Contoh placeholder jika belum ada: final NumberFormat currencyFormatter = NumberFormat.simpleCurrency(locale: 'id_ID');
+
 
     return InkWell(
       onTap: () {
@@ -347,12 +346,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
           ],
         ),
-        // ✅ PERBAIKAN: Gunakan MainAxisSize.min agar Column hanya mengambil ruang yang dibutuhkan
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min, // JANGAN MENGGUNAKAN Expanded DI SINI
+          mainAxisSize: MainAxisSize.min, 
           children: [
-            // 1. Image Container (Tinggi tetap, AspectRatio 1.0)
             Stack(
               children: [
                 Hero(
@@ -414,15 +411,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               ],
             ),
 
-            // 2. Product Info (Menggunakan Padding standar, tanpa Expanded)
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                // ✅ PERBAIKAN: Hapus mainAxisAlignment: MainAxisAlignment.spaceBetween di sini
-                mainAxisSize: MainAxisSize.min, // Agar Column ini juga minimal
+                mainAxisSize: MainAxisSize.min, 
                 children: [
-                  // Product Name
                   Text(
                     product.productName,
                     maxLines: 1,
@@ -437,16 +431,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                   ),
                   const SizedBox(height: 4),
 
-                  // Category
                   const SizedBox(height: 8),
 
-                  // Price & Rating Section (Gabungan)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Price
                       Flexible(
-                        // Ganti Expanded menjadi Flexible di sini
                         child: Text(
                           currencyFormatter.format(product.price),
                           maxLines: 1,

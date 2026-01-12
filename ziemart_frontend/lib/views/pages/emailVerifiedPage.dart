@@ -152,7 +152,6 @@ class _EmailVerifiedPageState extends State<EmailVerifiedPage> {
               const Spacer(),
               TextButton(
                 onPressed: () {
-                  // TODO: Tambahkan fitur kirim ulang kode di sini nanti
                 },
                 child: const Text(
                   'Kirim Ulang Kode',

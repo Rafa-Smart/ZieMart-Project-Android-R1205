@@ -58,8 +58,8 @@ class Order {
       'status': status,
       'order_date': orderDate,
       'updated_at': updatedAt,
-      'product': product?.toJson(), // SUDAH AMAN
-      'account': account?.toJson(), // SUDAH AMAN
+      'product': product?.toJson(), 
+      'account': account?.toJson(), 
     };
   }
 

@@ -1,11 +1,38 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import 'package:ziemart_frontend/config/app_asset.dart';
 import '../../viewmodels/login_viewmodel.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  Future<void> _dahLogin() async {
+    final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
+    final isLoggedIn = await loginViewModel.checkLoginStatus();
+
+    final isAdaUser = await loginViewModel.currentUser;
+    print(isAdaUser);
+    print(isLoggedIn);
+    if (isAdaUser != null || isLoggedIn) {
+      Navigator.pushReplacementNamed(context, '/homePage');
+      return;
+    }
+  }
+
+
+  @override
+  void initState(){
+    super.initState();
+    _dahLogin();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +57,10 @@ class LoginPage extends StatelessWidget {
               child: SafeArea(
                 child: Center(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 40,
+                    ),
                     child: Card(
                       elevation: 20,
                       shadowColor: Colors.black.withOpacity(0.3),
@@ -50,7 +80,9 @@ class LoginPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF2F5DFE).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF2F5DFE,
+                                  ).withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Image.asset(
@@ -60,7 +92,7 @@ class LoginPage extends StatelessWidget {
                                 ),
                               ),
                               const Gap(20),
-                              
+
                               // Title
                               const Text(
                                 "Selamat Datang!",
@@ -92,7 +124,9 @@ class LoginPage extends StatelessWidget {
                                   if (value == null || value.isEmpty) {
                                     return "Email wajib diisi";
                                   }
-                                  final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                                  final emailRegex = RegExp(
+                                    r'^[^@]+@[^@]+\.[^@]+',
+                                  );
                                   if (!emailRegex.hasMatch(value)) {
                                     return "Format email tidak valid";
                                   }
@@ -123,14 +157,19 @@ class LoginPage extends StatelessWidget {
                                   onTap: viewModel.isResetLoading
                                       ? null
                                       : () async {
-                                          final success = await viewModel.sendForgotPassword();
+                                          final success = await viewModel
+                                              .sendForgotPassword();
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
                                                 content: Row(
                                                   children: [
                                                     Icon(
-                                                      success ? Icons.check_circle : Icons.error,
+                                                      success
+                                                          ? Icons.check_circle
+                                                          : Icons.error,
                                                       color: Colors.white,
                                                     ),
                                                     const SizedBox(width: 8),
@@ -143,22 +182,30 @@ class LoginPage extends StatelessWidget {
                                                     ),
                                                   ],
                                                 ),
-                                                backgroundColor: success ? Colors.green : Colors.red,
-                                                behavior: SnackBarBehavior.floating,
+                                                backgroundColor: success
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
                                                 shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
                                                 ),
                                               ),
                                             );
                                           }
                                         },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
                                     child: viewModel.isResetLoading
                                         ? const SizedBox(
                                             height: 18,
                                             width: 18,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
                                           )
                                         : Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -192,46 +239,71 @@ class LoginPage extends StatelessWidget {
                                   onPressed: viewModel.isLoading
                                       ? null
                                       : () async {
-                                          if (formKey.currentState!.validate()) {
-                                            final success = await viewModel.login();
-                                            
+                                          if (formKey.currentState!
+                                              .validate()) {
+                                            final success = await viewModel
+                                                .login();
+
                                             if (success && context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
                                                   content: Row(
                                                     children: const [
-                                                      Icon(Icons.check_circle, color: Colors.white),
+                                                      Icon(
+                                                        Icons.check_circle,
+                                                        color: Colors.white,
+                                                      ),
                                                       SizedBox(width: 8),
                                                       Text('Login berhasil!'),
                                                     ],
                                                   ),
                                                   backgroundColor: Colors.green,
-                                                  behavior: SnackBarBehavior.floating,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
                                                   ),
                                                 ),
                                               );
-                                              
-                                              Navigator.pushReplacementNamed(context, '/homePage');
+
+                                              Navigator.pushReplacementNamed(
+                                                context,
+                                                '/homePage',
+                                              );
                                             } else if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
                                                   content: Row(
                                                     children: [
-                                                      const Icon(Icons.error, color: Colors.white),
+                                                      const Icon(
+                                                        Icons.error,
+                                                        color: Colors.white,
+                                                      ),
                                                       const SizedBox(width: 8),
                                                       Expanded(
                                                         child: Text(
-                                                          viewModel.errorMessage ?? 'Email atau password salah.'
+                                                          viewModel
+                                                                  .errorMessage ??
+                                                              'Email atau password salah.',
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                   backgroundColor: Colors.red,
-                                                  behavior: SnackBarBehavior.floating,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
                                                   ),
                                                 ),
                                               );
@@ -244,7 +316,9 @@ class LoginPage extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(14),
                                     ),
                                     elevation: 4,
-                                    shadowColor: const Color(0xFF2F5DFE).withOpacity(0.4),
+                                    shadowColor: const Color(
+                                      0xFF2F5DFE,
+                                    ).withOpacity(0.4),
                                   ),
                                   child: viewModel.isLoading
                                       ? const SizedBox(
@@ -256,9 +330,14 @@ class LoginPage extends StatelessWidget {
                                           ),
                                         )
                                       : Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: const [
-                                            Icon(Icons.login, color: Colors.white, size: 20),
+                                            Icon(
+                                              Icons.login,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
                                             SizedBox(width: 8),
                                             Text(
                                               "MASUK",
@@ -278,9 +357,13 @@ class LoginPage extends StatelessWidget {
                               // Divider
                               Row(
                                 children: [
-                                  Expanded(child: Divider(color: Colors.grey[300])),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey[300]),
+                                  ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
                                     child: Text(
                                       "atau",
                                       style: TextStyle(
@@ -290,7 +373,9 @@ class LoginPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Expanded(child: Divider(color: Colors.grey[300])),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey[300]),
+                                  ),
                                 ],
                               ),
                               const Gap(24),
@@ -307,7 +392,10 @@ class LoginPage extends StatelessWidget {
                                     ),
                                   ),
                                   InkWell(
-                                    onTap: () => Navigator.pushNamed(context, '/registerPage'),
+                                    onTap: () => Navigator.pushNamed(
+                                      context,
+                                      '/registerPage',
+                                    ),
                                     child: const Text(
                                       "Daftar di sini",
                                       style: TextStyle(
@@ -351,13 +439,13 @@ class LoginPage extends StatelessWidget {
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: const Color(0xFF2F5DFE), size: 22),
         labelText: label,
-        labelStyle: TextStyle(
-          color: Colors.grey[600],
-          fontSize: 15,
-        ),
+        labelStyle: TextStyle(color: Colors.grey[600], fontSize: 15),
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),

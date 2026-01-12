@@ -22,12 +22,10 @@ class ExportService {
   static final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
   static final _simpleDateFormat = DateFormat('dd MMM yyyy');
 
-  // Check storage permission
   static Future<bool> _checkPermission() async {
     if (Platform.isAndroid) {
       final status = await Permission.storage.request();
       if (status.isDenied) {
-        // Request again
         await Permission.storage.request();
       }
       return status.isGranted || status.isLimited;
@@ -35,7 +33,6 @@ class ExportService {
     return true;
   }
 
-  // Get download directory
   static Future<Directory> getDownloadDirectory() async {
     if (Platform.isAndroid) {
       return Directory("/storage/emulated/0/Download");
@@ -123,7 +120,6 @@ class ExportService {
           cell.cellStyle = cellStyle;
         }
 
-        // Format currency cells
         final priceCell = sheet.cell(excel_lib.CellIndex.indexByString('G$row'));
         final totalCell = sheet.cell(excel_lib.CellIndex.indexByString('H$row'));
         
@@ -136,12 +132,10 @@ class ExportService {
         totalCell.cellStyle = currencyStyle;
       }
 
-      // Auto size columns
       for (int i = 0; i < headers.length; i++) {
         sheet.setColAutoFit(i);
       }
 
-      // Add summary row
       final summaryRow = orders.length + 3;
       final totalCell = sheet.cell(excel_lib.CellIndex.indexByString('G$summaryRow'));
       totalCell.value = 'Total Revenue:';
@@ -164,13 +158,13 @@ class ExportService {
       final bytes = excel.save();
       if (bytes != null) {
         await file.writeAsBytes(bytes);
-        print('✅ File Excel berhasil disimpan di: $filePath');
+        print(' File Excel berhasil disimpan di: $filePath');
         return file;
       }
       
       return null;
     } catch (e) {
-      print('❌ Error export to Excel: $e');
+      print(' Error export to Excel: $e');
       return null;
     }
   }
@@ -224,10 +218,10 @@ class ExportService {
       final file = File(filePath);
       
       await file.writeAsBytes(await pdf.save());
-      print('✅ File PDF berhasil disimpan di: $filePath');
+      print(' File PDF berhasil disimpan di: $filePath');
       return file;
     } catch (e) {
-      print('❌ Error export to PDF: $e');
+      print(' Error export to PDF: $e');
       return null;
     }
   }
@@ -462,20 +456,18 @@ class ExportService {
     try {
       await _checkPermission();
       
-      // For DOCX, we'll create HTML and convert to DOCX
-      // Note: Creating actual DOCX is complex, we'll create HTML that can be opened in Word
       
       final htmlContent = _generateHTMLContent(orders);
       
       final directory = await getDownloadDirectory();
-      final filePath = '${directory.path}/$fileName.html'; // Save as HTML
+      final filePath = '${directory.path}/$fileName.html'; 
       final file = File(filePath);
       
       await file.writeAsString(htmlContent);
-      print('✅ File HTML/Word berhasil disimpan di: $filePath');
+      print(' File HTML/Word berhasil disimpan di: $filePath');
       return file;
     } catch (e) {
-      print('❌ Error export to Word: $e');
+      print(' Error export to Word: $e');
       return null;
     }
   }
@@ -685,23 +677,23 @@ class ExportService {
 static Future<void> openFile(File file) async {
   try {
     if (!await file.exists()) {
-      print('❌ File tidak ditemukan: ${file.path}');
+      print(' File tidak ditemukan: ${file.path}');
       return;
     }
     
-    print('📂 Membuka file: ${file.path}');
+    print(' Membuka file: ${file.path}');
     
     // Simple open file
     final result = await OpenFile.open(file.path);
     
     if (result.type != ResultType.done) {
-      print('⚠️ Gagal membuka file: ${result.message}');
+      print(' Gagal membuka file: ${result.message}');
       
       // Fallback: copy file ke external storage
       await _copyToDownloads(file);
     }
   } catch (e) {
-    print('❌ Error opening file: $e');
+    print(' Error opening file: $e');
   }
 }
 
@@ -712,19 +704,17 @@ static Future<void> _copyToDownloads(File file) async {
     final newFile = File(newPath);
     
     await file.copy(newPath);
-    print('✅ File disalin ke: $newPath');
+    print(' File disalin ke: $newPath');
     
     await OpenFile.open(newPath);
   } catch (e) {
-    print('❌ Error copying file: $e');
+    print(' Error copying file: $e');
   }
 }
 
-  // Share file
+
   static Future<void> shareFile(BuildContext context, File file) async {
     try {
-      // You can use share_plus package for better sharing
-      // For now, we'll just show a snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('File berhasil dibuat: ${file.path}'),
@@ -732,7 +722,7 @@ static Future<void> _copyToDownloads(File file) async {
         ),
       );
     } catch (e) {
-      print('❌ Error sharing file: $e');
+      print(' Error sharing file: $e');
     }
   }
 }

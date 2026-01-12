@@ -343,7 +343,6 @@ Email: ${user.email}
   }
 
   if (!launched && mounted) {
-    // Fallback: Buka dialog untuk copy nomor
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

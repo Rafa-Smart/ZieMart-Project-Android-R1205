@@ -1,4 +1,4 @@
-// file comment_viewmodel.dart
+
 
 import 'package:flutter/foundation.dart';
 import '../models/comment_model.dart';
@@ -26,13 +26,13 @@ class CommentViewModel extends ChangeNotifier {
 
 
   Future<void> addComment(int productId, Comment comment) async {
-    // 1. Panggil repository untuk menyimpan komentar ke backend
+ 
     final newComment = await _repository.addComment(productId, comment);
     
     // 2. Perbarui list lokal
     _comments.insert(0, newComment);
     
-    // 3. Beri tahu semua widget Consumer bahwa data telah berubah
+
     notifyListeners(); 
   }
 }

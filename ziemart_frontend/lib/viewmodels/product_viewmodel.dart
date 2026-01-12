@@ -44,7 +44,6 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Panggil repository yang request ke API /searchProducts?q=...
       _filteredProducts = await _repository.searchProducts(query);
     } catch (e) {
       _errorMessage = e.toString();

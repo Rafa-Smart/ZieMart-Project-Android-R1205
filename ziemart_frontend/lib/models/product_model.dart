@@ -1,6 +1,5 @@
 import 'category_model.dart';
 
-// -------------------- Seller Model --------------------
 class Seller {
   final int id;
   final String storeName;
@@ -29,7 +28,7 @@ class Seller {
   }
 }
 
-// -------------------- Product Model --------------------
+
 class Product {
   final int id;
   final String productName;
@@ -58,7 +57,6 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    // Parsing category
     Category category;
     if (json['category'] != null) {
       if (json['category'] is Map<String, dynamic>) {
@@ -76,7 +74,7 @@ class Product {
       );
     }
 
-    // Parsing seller
+
     Seller? seller;
     if (json['seller'] != null && json['seller'] is Map<String, dynamic>) {
       seller = Seller.fromJson(json['seller']);

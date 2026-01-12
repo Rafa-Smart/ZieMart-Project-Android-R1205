@@ -38,7 +38,7 @@ class CategoryViewModel extends ChangeNotifier {
     }
   }
 
-  // Fetch popular categories
+
   Future<void> fetchPopularCategories() async {
     try {
       _popularCategories = await _repository.getPopularCategories();
@@ -49,7 +49,7 @@ class CategoryViewModel extends ChangeNotifier {
     }
   }
 
-  // Get category by ID
+
   Future<model.Category?> getCategoryById(int id) async {
     try {
       return await _repository.getCategoryById(id);
@@ -60,7 +60,7 @@ class CategoryViewModel extends ChangeNotifier {
     }
   }
 
-  // Get products by category
+  
   Future<void> fetchProductsByCategory(int categoryId) async {
     _isLoading = true;
     _errorMessage = null;
@@ -78,7 +78,7 @@ class CategoryViewModel extends ChangeNotifier {
     }
   }
 
-  // Clear selected category
+  
   void clearSelection() {
     _selectedCategory = null;
     _categoryProducts = [];

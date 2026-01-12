@@ -1,4 +1,4 @@
-// lib/views/pages/help_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ziemart_frontend/viewmodels/email_viewmodel.dart';

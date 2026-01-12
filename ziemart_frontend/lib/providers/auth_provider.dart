@@ -24,7 +24,7 @@ class AuthProvider extends ChangeNotifier {
         _currentUser = await _repository.getCurrentUser();
       }
     } catch (e) {
-      debugPrint("Error initializing auth: $e");
+      debugPrint("error authnya: $e");
       _isLoggedIn = false;
       _currentUser = null;
     } finally {
@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Login
+
   Future<bool> login(String email, String password) async {
     try {
       final user = await _repository.login(email, password);
@@ -51,7 +51,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Logout
+
   Future<void> logout() async {
     await _repository.logout();
     _currentUser = null;
@@ -65,7 +65,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Helper getters
+
   String? get userId => _currentUser?.id.toString();
   String? get userEmail => _currentUser?.email;
   String? get userName => _currentUser?.username;

@@ -19,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<ProfileViewModel>(context, listen: false).loadProfile(widget.userId);
+      Provider.of<ProfileViewModel>(context, listen: false)..loadProfile(widget.userId);
     });
   }
 

@@ -149,6 +149,7 @@ class RegisterPage extends StatelessWidget {
                                   if (value == null || value.isEmpty) {
                                     return "Email wajib diisi";
                                   }
+                                  //  final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
                                   final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
                                   if (!emailRegex.hasMatch(value)) {
                                     return "Format email tidak valid";

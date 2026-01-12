@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // final String _baseUrl = "http://127.0.0.1:8000/api/ziemart";
-  final String _baseUrl = "http://192.168.1.6:8000/api/ziemart";
+  final String _baseUrl = "http://127.0.0.1:8000/api/ziemart";
+  // final String _baseUrl = "http://192.168.0.136:8000/api/ziemart";
 
-  // POST Request
+
   Future<Map<String, dynamic>> post(
     String endpoint,
     Map<String, dynamic> body,
@@ -28,7 +28,7 @@ class ApiService {
     }
   }
 
-  // GET Request
+  
   Future<Map<String, dynamic>> get(String endpoint) async {
     final url = Uri.parse("$_baseUrl/$endpoint");
     final response = await http.get(
@@ -43,7 +43,7 @@ class ApiService {
     }
   }
 
-  // PUT Request
+  
   Future<Map<String, dynamic>> put(
     String endpoint,
     Map<String, dynamic> body,
@@ -65,7 +65,7 @@ class ApiService {
     }
   }
 
-  // DELETE Request
+
   Future<Map<String, dynamic>> delete(String endpoint) async {
     final url = Uri.parse("$_baseUrl/$endpoint");
     final response = await http.delete(
